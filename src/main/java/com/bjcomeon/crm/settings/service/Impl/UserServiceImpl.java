@@ -53,4 +53,21 @@ public class UserServiceImpl implements UserService {
 
               return uList;
        }
+
+       public Boolean editpwd(String id, String oldPwd, String newPwd, String confirmPwd) throws LoginException {
+
+              boolean flag = true;
+              Map<String,String> map = new HashMap<String, String>();
+              map.put("id",id);
+              map.put("loginPwd",oldPwd);
+              map.put("newPwd",newPwd);
+
+              int count = userDao.editpwd(map);
+              if (count != 1){
+                     flag = false;
+                     throw new LoginException("原密码错误，请重新输入！");
+              }
+
+              return flag;
+       }
 }

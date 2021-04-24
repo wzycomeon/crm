@@ -11,4 +11,5 @@ public interface UserService {
 
     List<User> getUerList();
 
+    Boolean editpwd(String id, String oldPwd, String newPwd, String confirmPwd) throws LoginException;
 }

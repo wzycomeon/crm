@@ -5,6 +5,12 @@
 
 <mapper namespace="com.bjcomeon.crm.settings.dao.UserDao">
 
+    <update id="editpwd">
+
+        update tbl_user set loginPwd=#{newPwd} where id=#{id} and loginPwd=#{loginPwd}
+
+    </update>
+
     <select id="login" resultType="User">
         select * from tbl_user where loginAct=#{loginAct} and loginPwd=#{loginPwd}
     </select>

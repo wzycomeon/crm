@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + "/";
+    String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + "/";
 %>
 <!DOCTYPE html>
 <html>
@@ -39,12 +39,105 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
             //页面加载完毕后，在工作区打开响应的页面
             window.open("workbench/main/index.html", "workareaFrame");
 
+
+            //修改密码
+            $("#editNewPwd").click(function () {
+
+                var id = "${user.id}";
+                var oldPwd = $.trim($("#oldPwd").val());
+                var newPwd = $.trim($("#newPwd").val());
+                var confirmPwd = $.trim($("#confirmPwd").val());
+
+                if (oldPwd == "") {
+                    $("#msgconfirmPwd").html("原密码不能为空");
+                    return false;
+                }
+                if (newPwd == "") {
+                    $("#msgconfirmPwd").html("新密码不能为空");
+                    return false;
+                }
+                if (confirmPwd == "") {
+                    $("#msgconfirmPwd").html("确认密码不能为空");
+                    return false;
+                }
+                if (newPwd!=confirmPwd) {
+                    $("#msgconfirmPwd").html("确认密码与新密码不符，请重新输入!");
+                    return false;
+                }
+
+                if (confirm("确定要更改密码吗？")) {
+                    $.ajax({
+                        url: "settings/user/editpwd.do",
+                        data: {
+                            "id": id,
+                            "oldPwd": oldPwd,
+                            "newPwd": newPwd,
+                            "confirmPwd": confirmPwd
+                        },
+                        type: "post",
+                        dataType: "json",
+                        success: function (data) {
+                            /*
+                                 data
+                                     {"success":true/false,"msg":"哪错了"}
+                             */
+                            //如果登录成功
+                            if (data.success) {
+                                $("#editPwd").modal("show");
+                                //将密码文本框中的内容清空
+                                clear();
+                                //更新内容之后关闭模态窗口
+                                $("#editPwdModal").modal("hide");
+
+                                //如果登录失败，显示错误信息
+                            } else {
+
+                                $("#msgconfirmPwd").html(data.msg);
+                                $("#oldPwd").click(function (){
+                                    clear();
+                                    $("#msgconfirmPwd").html("");
+                                })
+                            }
+                        }
+                    })
+                }
+            })
         });
+
+        function clear() {
+            //将密码文本框中的内容清空
+            $("#oldPwd").val("");
+            $("#newPwd").val("");
+            $("#confirmPwd").val("");
+        }
+
 
     </script>
 
 </head>
 <body>
+
+<!--修改密码过程弹窗-->
+<div class="modal fade" id="editPwd" role="dialog">
+    <div class="modal-dialog" role="document" style="width: 30%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+                <h4 class="modal-title">修改密码</h4>
+            </div>
+            <div class="modal-body">
+                <div style="position: relative; color:#4cae4c;left: 120px;">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;密码修改成功！
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- 我的资料 -->
 <div class="modal fade" id="myInformation" role="dialog">
@@ -58,12 +151,12 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
             </div>
             <div class="modal-body">
                 <div style="position: relative; left: 40px;">
-                    姓名：<b>张三</b><br><br>
-                    登录帐号：<b>zhangsan</b><br><br>
-                    组织机构：<b>1005，市场部，二级部门</b><br><br>
-                    邮箱：<b>zhangsan@bjpowernode.com</b><br><br>
-                    失效时间：<b>2017-02-14 10:10:10</b><br><br>
-                    允许访问IP：<b>127.0.0.1,192.168.100.2</b>
+                    姓名：<b>${user.name}</b><br><br>
+                    登录帐号：<b>${user.loginAct}</b><br><br>
+                    组织机构：<b>${user.deptno}</b><br><br>
+                    邮箱：<b>${user.email}</b><br><br>
+                    失效时间：<b>${user.expireTime}</b><br><br>
+                    允许访问IP：<b>${user.allowIps}</b>
                 </div>
             </div>
             <div class="modal-footer">
@@ -102,15 +195,15 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
                     <div class="form-group">
                         <label for="confirmPwd" class="col-sm-2 control-label">确认密码</label>
                         <div class="col-sm-10" style="width: 300px;">
-                            <input type="text" class="form-control" id="confirmPwd" style="width: 200%;">
+                            <input type="text" class="form-control" id="confirmPwd" style="width: 200%;"><span
+                                id="msgconfirmPwd" style="color: red"></span>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal"
-                        onclick="window.location.href='login.jsp';">更新
+                <button type="button" class="btn btn-primary"  id="editNewPwd">修改
                 </button>
             </div>
         </div>
@@ -143,7 +236,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
 <!-- 顶部 -->
 <div id="top" style="height: 50px; background-color: #3C3C3C; width: 100%;">
     <div style="position: absolute; top: 5px; left: 0px; font-size: 30px; font-weight: 400; color: white; font-family: 'times new roman'">
-        CRM &nbsp;<span style="font-size: 12px;">&copy;2017&nbsp;动力节点</span></div>
+        CRM &nbsp;<span style="font-size: 12px;">&copy;2021&nbsp;秃头人计划</span></div>
     <div style="position: absolute; top: 15px; right: 15px;">
         <ul>
             <li class="dropdown user-dropdown">
@@ -153,7 +246,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 </a>
                 <ul class="dropdown-menu">
-                    <li><a href="settings/index.html"><span class="glyphicon glyphicon-wrench"></span> 系统设置</a></li>
+                    <li><a href="settings/index.jsp"><span class="glyphicon glyphicon-wrench"></span> 系统设置</a></li>
                     <li><a href="javascript:void(0)" data-toggle="modal" data-target="#myInformation"><span
                             class="glyphicon glyphicon-file"></span> 我的资料</a></li>
                     <li><a href="javascript:void(0)" data-toggle="modal" data-target="#editPwdModal"><span
@@ -173,7 +266,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
     <div id="navigation" style="left: 0px; width: 18%; position: relative; height: 100%; overflow:auto;">
 
         <ul id="no1" class="nav nav-pills nav-stacked">
-            <li class="liClass"><a href="main/index.html" target="workareaFrame"><span
+            <li class="liClass"><a href="workbench/main/index.html" target="workareaFrame"><span
                     class="glyphicon glyphicon-home"></span> 工作台</a></li>
             <li class="liClass"><a href="javascript:void(0);" target="workareaFrame"><span
                     class="glyphicon glyphicon-tag"></span> 动态</a></li>
@@ -191,7 +284,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
                     class="glyphicon glyphicon-earphone"></span> 联系人</a></li>
             <li class="liClass"><a href="workbench/transaction/index.jsp" target="workareaFrame"><span
                     class="glyphicon glyphicon-usd"></span> 交易（商机）</a></li>
-            <li class="liClass"><a href="visit/index.html" target="workareaFrame"><span
+            <li class="liClass"><a href="workbench/visit/index.html" target="workareaFrame"><span
                     class="glyphicon glyphicon-phone-alt"></span> 售后回访</a></li>
             <li class="liClass">
                 <a href="#no2" class="collapsed" data-toggle="collapse"><span class="glyphicon glyphicon-stats"></span>

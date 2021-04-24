@@ -16,18 +16,48 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UserController extends HttpServlet{
+public class UserController extends HttpServlet {
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         System.out.println("欢迎进入用户控制器");
 
         String path = request.getServletPath();
-        if ("/settings/user/login.do".equals(path)){
-            login(request,response);
+        if ("/settings/user/login.do".equals(path)) {
+            login(request, response);
 
-        }else if("/settings/user/xx.do".equals(path)){
-            //xxx(request,response);
+        } else if ("/settings/user/editpwd.do".equals(path)) {
+            editpwd(request, response);
+        }
+
+    }
+
+    private void editpwd(HttpServletRequest request, HttpServletResponse response) {
+        System.out.println("执行密码修改操作");
+        String id = request.getParameter("id");
+        String oldPwd = request.getParameter("oldPwd");
+        String newPwd = request.getParameter("newPwd");
+        String confirmPwd = request.getParameter("confirmPwd");
+
+        oldPwd = MD5Util.getMD5(oldPwd);
+        newPwd = MD5Util.getMD5(newPwd);
+        confirmPwd = MD5Util.getMD5(confirmPwd);
+
+        boolean flag = false;
+        UserService us = (UserService) ServiceFactory.getService(new UserServiceImpl());
+
+        try {
+            flag = us.editpwd(id, oldPwd, newPwd, confirmPwd);
+            PrintJson.printJsonFlag(response, flag);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            String msg = e.getMessage();
+
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("success", flag);
+            map.put("msg", msg);
+            PrintJson.printJsonObj(response, map);
         }
 
     }
@@ -46,15 +76,15 @@ public class UserController extends HttpServlet{
         UserService us = (UserService) ServiceFactory.getService(new UserServiceImpl());
 
         try {
-            User user = us.login(loginAct,loginPwd,ip);
-            request.getSession().setAttribute("user",user);
+            User user = us.login(loginAct, loginPwd, ip);
+            request.getSession().setAttribute("user", user);
             //如果程序执行到此处，说明业务层没有为controller抛出任何的异常
             // 表示登录成功
             /*
                 {"success":true}
              */
-             PrintJson.printJsonFlag(response,true);
-        }catch (Exception e){
+            PrintJson.printJsonFlag(response, true);
+        } catch (Exception e) {
             e.printStackTrace();
             //一旦程序执行了catch块的信息，说明业务层为我们验证登录失败，为controller抛出了异常
             //表示登录失败
@@ -72,10 +102,10 @@ public class UserController extends HttpServlet{
                     如果对于展现的信息将来还会大量的使用，我们创建一个vo类，使用方便
                     如果对于展现的信息只有在这个需求中能够使用，我们使用map就可以了
              */
-            Map<String,Object> map = new HashMap<String, Object>();
-            map.put("success",false);
-            map.put("msg",msg);
-            PrintJson.printJsonObj(response,map);
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("success", false);
+            map.put("msg", msg);
+            PrintJson.printJsonObj(response, map);
         }
     }
 }
